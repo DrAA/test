@@ -15,4 +15,23 @@
     def cross_validation(self, data, learner, classifier=None, folds=8):
         classifier = classifier or (lambda model, example: model(example))
         cv_indices = orange.MakeRandomIndicesCV(data, folds)
+        total_hit_count = 0
+        print
+        for fold in range(folds):
+            training_set = data.select(cv_indices, fold, negate=1)
+            test_set = data.select(cv_indices, fold)
+
+            model = learner(training_set)
+            hit_count = 0
+            for example in test_set:
+                prediction = classifier(model, example)
+                correct = example.getclass()
+                if prediction == correct:
+                    hit_count += 1
+            print "%.2f %% accuracy (%d of %d examples)" % (
+                float(hit_count) / len(test_set) * 100, hit_count, len(test_set))
+            total_hit_count += hit_count
+        print "%.2f %% average accuracy" % \
+                (total_hit_count / float(folds) / len(test_set) * 100)
+
 
